@@ -1,7 +1,7 @@
 # Thesis-Tools
 These are the tools created for the master thesis *Task scheduling for dual-arm industrial robots through constraint programming - MiniZinc modeling and solver comparison*.
 The tools are free to use under the Apache 2.0 license.
-The report can be found [here][https://github.com/Arclights/Master-Thesis-Report/raw/master/report.pdf]
+The report can be found [here](https://github.com/Arclights/Master-Thesis-Report/raw/master/report.pdf)
 
 ## Data
 This directory contains the data for the case study and the MiniZinc model
