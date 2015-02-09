@@ -6,9 +6,6 @@ The report can be found [here](https://github.com/Arclights/Master-Thesis-Report
 ## Data
 This directory contains the data for the case study and the MiniZinc model
 
-## Assembly
-This is used by AssemblyConv to represent the assembly
-
 ## AssemblyConv
 `AssemblyConv` is the program used to convert the XML file and the time matrix file into data for the solver. It takes the matrix file and the XML as arguments and produces a MiniZinc file. For a detailed description of the syntax run the program without parameters.
 
