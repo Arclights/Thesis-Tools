@@ -71,7 +71,7 @@ array [1..nbrTasks+nbrMachines*2] of var 0..maxE: start;
 array [1..nbrTasks+nbrMachines*2] of var 0..maxE: end;
 var 0..maxE: makespan;
 
-bool: domainFilter;
+bool: tempFilter;
 bool: predFilter;
 
 array[tasks] of var 0..maxE:moveStart;
@@ -103,7 +103,7 @@ array[tasks] of int: minMoveDurs = [min([timeMatrix3D[task,j,k]|j in tasks, k in
 int: maxEnd = sum(duration)+sum(maxMoveDurs);
 int: minEnd = (sum(duration)+sum(minMoveDurs)) div nbrMachines;
 constraint
-  if domainFilter then
+  if tempFilter then
     forall(task in 1..nbrTasks+nbrMachines*2)(
       start[task] <= maxEnd-duration[task]
     )
@@ -121,7 +121,7 @@ constraint
 
 % Limit the duration domains
 constraint
-  if domainFilter then
+  if tempFilter then
   forall(task in tasks)(
     let{
       set of int:nonValidDurs =  0..maxMoveDurs[task] diff {timeMatrix3D[task,j,k]|j in tasks, k in 1..timeMatrix3DDepth where task != j}
@@ -136,7 +136,7 @@ constraint
 
 % The assembly has to start with a take task
 constraint
-  if domainFilter then
+  if tempFilter then
   let{
     int:minTakeDur = min([duration[task]+minMoveDurs[task]|task in taking])
   }in
@@ -150,7 +150,7 @@ constraint
 % Limit the domains
 % Lower bound
 constraint
-  if domainFilter then
+  if tempFilter then
   forall(t in tasks)(
     let{
       set of int: prevTasks = {task|task in tasks where componentCreated[task] in componentsUsed[t]}
@@ -173,7 +173,7 @@ constraint
 
 % Upper bound of task using components later used as subcomponents
 constraint
-  if domainFilter then
+  if tempFilter then
   forall(precTask in tasks)(
     let{
       set of int: succTasks = {task|task in tasks where componentsUsed[precTask] subset taskCompleteSubComponents[task] /\ componentsUsed[precTask] union taskCompleteSubComponents[task] != {}}
@@ -215,12 +215,23 @@ constraint
     true
   endif;
 
+% Mount tasks cannot be predecessors of each other
+% REMOVE IF USING EJENSTAMS DATA
+constraint
+  if predFilter then
+  forall(mountTask1,mountTask2 in mounting where mountTask1 != mountTask2)(
+    pred[mountTask1] != mountTask2
+  )
+  else
+    true
+  endif;
+
 % Put tasks cannot be predecessors of each other
 % REMOVE IF USING EJENSTAMS DATA
 constraint
   if predFilter then
-  forall(task1,task2 in putting union mounting where task1 != task2)(
-    pred[task1] != task2
+  forall(putTask1,putTask2 in putting where putTask1 != putTask2)(
+    pred[putTask1] != putTask2
   )
   else
     true
@@ -452,12 +463,10 @@ constraint
       let{
         int: nbrPuts = length([task|task in putting where fixture[task] = f]),
         array[1..nbrPuts] of int: puts = [task|task in putting where fixture[task] = f],
-        array[1..nbrPuts] of int: takes = [min({take|take in taking where fixture[take] = f /\ componentsUsed[putTask] subset taskCompleteSubComponents[take]})|putTask in puts]
+        array[1..nbrPuts] of set of int: takesForEachPut = [{take|take in taking where fixture[take] = f /\ componentsUsed[putTask] subset taskCompleteSubComponents[take]}|putTask in puts],
+        array[1..nbrPuts] of int: takes = [[take|take in takesForEachPut[p] where card(taskCompleteSubComponents[take]) = min([card(taskCompleteSubComponents[t])|t in takesForEachPut[p]])][1]|p in 1..nbrPuts]
       } in
-
-trace("takes: "++show(takes)++"\n",
         cumulative([moveStart[task]|task in puts], [abs(end[takes[i]]-moveStart[puts[i]])|i in 1..nbrPuts], [1|i in 1..nbrPuts], 1)
-)
   );
 
 
@@ -578,7 +587,7 @@ constraint
   forall(comp in components)(
     forall(mountTask in mounting_c[comp])(
       let{
-        set of int: puts = {p|p in putting_c[comp] where (fixture[p] > 0 /\ fixture[p] = fixture[mountTask]) \/ (out_put[p] > 0 /\ out_put[p] = out_put[mountTask])}
+        set of int: puts = {p|p in putting_c[comp] where (fixture[p] > 0 /\ fixture[p] = fixture[mountTask]) \/ (out_put[p] > 0 /\ out_put[p] = out_put[mountTask]) \/ (tray[p] > 0 /\ tray[p] = tray[mountTask])}
       } in
       forall(takeTask in taking_c[comp] where not(takeTask in orderedSet) /\ puts = {})(
           pred[mountTask] = takeTask
@@ -641,79 +650,49 @@ constraint
   );
 
 
-var 0..1: dummyVar;
+
 
 solve :: seq_search([
                       int_search(usingMachine, first_fail, indomain_max, complete),
-                      if length([pred[task]|task in taking where out_put[task] = 0]) > 0 then
-                        if prioritiseTaking then
-                          int_search([pred[task]|task in taking where out_put[task] = 0], first_fail, indomain_max, complete)
-                        else
-                          int_search([pred[task]|task in taking where out_put[task] = 0], first_fail, indomain_median, complete)
-                        endif
-                      else
-                        int_search([dummyVar], first_fail, indomain_median, complete)
-                      endif
-,                     if length([pred[task]|task in putting where out_put[task] = 0]) > 0 then
-                        int_search([pred[task]|task in putting where out_put[task] = 0], first_fail, indomain_median, complete)
-                      else
-                        int_search([dummyVar], first_fail, indomain_median, complete)
-                      endif
-,
-                      if length([pred[task]|task in mounting where out_put[task] = 0]) > 0 then
-                        int_search([pred[task]|task in mounting where out_put[task] = 0], first_fail, indomain_median, complete)
-                      else
-                        int_search([dummyVar], first_fail, indomain_median, complete)
-                      endif
-,
-                      if length([pred[task]|task in tasks where out_put[task] != 0]) > 0 then
-                        int_search([pred[task]|task in tasks where out_put[task] != 0], first_fail, indomain_median, complete)
-                      else
-                        int_search([dummyVar], first_fail, indomain_median, complete)
-                      endif
-,
+if prioritiseTaking then
+                      int_search([pred[task]|task in taking where out_put[task] = 0], first_fail, indomain_max, complete)
+else
+                      int_search([pred[task]|task in taking where out_put[task] = 0], first_fail, indomain_median, complete)
+endif
+      ,int_search([pred[task]|task in putting where out_put[task] = 0], first_fail, indomain_median, complete),
+                      int_search([pred[task]|task in mounting where out_put[task] = 0], first_fail, indomain_median, complete),
+                      int_search([pred[task]|task in tasks where out_put[task] != 0], first_fail, indomain_median, complete),
                       int_search(pred, first_fail, indomain_median, complete),
+%                       int_search(toolUsed, first_fail, indomain_random, complete),
                       int_search(start, largest, indomain_min, complete)
 % Warmup for CPX
 %                       int_search(usingMachine, first_fail, indomain_max, cpx_warm_start(60000, complete)),
-%                       if length([pred[task]|task in taking where out_put[task] = 0]) > 0 then
-%                         if prioritiseTaking then
-%                           int_search([pred[task]|task in taking where out_put[task] = 0], first_fail, indomain_max, cpx_warm_start(60000, complete))
-%                         else
-%                           int_search([pred[task]|task in taking where out_put[task] = 0], first_fail, indomain_median, cpx_warm_start(60000, complete))
-%                         endif
-%                       else
-%                         int_search([dummyVar], first_fail, indomain_median, cpx_warm_start(60000, complete))
-%                       endif
-% ,                     if length([pred[task]|task in putting where out_put[task] = 0]) > 0 then
-%                         int_search([pred[task]|task in putting where out_put[task] = 0], first_fail, indomain_median, cpx_warm_start(60000, complete))
-%                       else
-%                         int_search([dummyVar], first_fail, indomain_median, cpx_warm_start(60000, complete))
-%                       endif
-% ,
-%                       if length([pred[task]|task in mounting where out_put[task] = 0]) > 0 then
-%                         int_search([pred[task]|task in mounting where out_put[task] = 0], first_fail, indomain_median, cpx_warm_start(60000, complete))
-%                       else
-%                         int_search([dummyVar], first_fail, indomain_median, cpx_warm_start(60000, complete))
-%                       endif
-% ,
-%                       if length([pred[task]|task in tasks where out_put[task] != 0]) > 0 then
-%                         int_search([pred[task]|task in tasks where out_put[task] != 0], first_fail, indomain_median, cpx_warm_start(60000, complete))
-%                       else
-%                         int_search([dummyVar], first_fail, indomain_median, cpx_warm_start(60000, complete))
-%                       endif
-% ,
+% if prioritiseTaking then
+%                       int_search([pred[task]|task in taking where out_put[task] = 0], first_fail, indomain_max, cpx_warm_start(60000, complete))
+% else
+%                       int_search([pred[task]|task in taking where out_put[task] = 0], first_fail, indomain_median, cpx_warm_start(60000, complete))
+% endif
+%                       ,int_search([pred[task]|task in putting where out_put[task] = 0], first_fail, indomain_median, cpx_warm_start(60000, complete)),
+%                       int_search([pred[task]|task in mounting where out_put[task] = 0], first_fail, indomain_median, cpx_warm_start(60000, complete)),
+%                       int_search([pred[task]|task in tasks where out_put[task] != 0], first_fail, indomain_median, cpx_warm_start(60000, complete)),
 %                       int_search(pred, first_fail, indomain_median, cpx_warm_start(60000, complete)),
-%                       int_search(start, largest, indomain_min, cpx_warm_start(60000, complete))                     
+% %                       int_search(toolUsed, first_fail, indomain_random, complete),
+%                       int_search(start, largest, indomain_min, cpx_warm_start(60000, complete))
+                     
 ])
         minimize makespan;
 %% solve minimize makespan;
 
 output ["Minimizing = " ++ show(makespan) ++ "\n"]++["End = " ++ show(max(end)) ++ "\n"] ++ 
-["start duration i usingMachine pred toolUsed name\n"] ++
+["start duration i usingMachine pred name hasToolChangeBefore\n"] ++
 [show(moveStart[i]) ++ " " ++ show(moveDuration[i]) ++ " 0 0 0 0" ++ " Move from " ++ show(pred[i]) ++ " to " ++ show(i) ++ "\n" ++
 show(start[i]) ++ " " ++ show(duration[i]) ++ " " ++ show(i) ++ " " ++ show(usingMachine[i]) ++ " " ++ show(pred[i])++
-" " ++ show(toolUsed[i]) ++ " " ++ show(name[i]) ++ "\n"|i in tasks] ++ 
-["\nStart tasks:\n"]++["#"++show(start[i]) ++ " " ++ show(duration[i]) ++ " " ++ show(i) ++ " " ++ show(usingMachine[i]) ++ " " ++ show(pred[i]) ++ " " ++ show(name[i])++ "\n"|i in nbrTasks+1..nbrTasks+nbrMachines]++
-["\nGoal tasks:\n"]++["#"++show(start[i]) ++ " " ++ show(duration[i]) ++ " " ++ show(i) ++ " " ++ show(usingMachine[i]) ++ " " ++ show(pred[i]) ++ " " ++ show(name[i])++"\n"|i in nbrTasks+nbrMachines+1..nbrTasks+nbrMachines*2]++["\n"];
+%  " " ++ show(succ[i]) ++ 
+" " ++ show(name[i]) ++ " TU" ++ show(toolUsed[i]) ++
+% " succ-"++show(succ[i])++
+" pred-"++show(pred[i])++ "\n"|i in tasks]++["#"++show(start[i]) ++ " " ++ show(duration[i]) ++ " " ++ show(i) ++ " " ++ show(usingMachine[i]) ++ " " ++ show(pred[i]) ++ " " ++ show(name[i])++
+% " succ-"++show(succ[i])++
+" pred-"++show(pred[i])++"\n"|i in nbrTasks+1..nbrTasks+nbrMachines]++["\nGoal tasks:\n"]++["#"++show(start[i]) ++ " " ++ show(duration[i]) ++ " " ++ show(i) ++ " " ++ show(usingMachine[i]) ++ " " ++ show(pred[i]) ++ " " ++ show(name[i])++
+% " succ-"++show(succ[i])++
+" pred-"++show(pred[i])++"\n"|i in nbrTasks+nbrMachines+1..nbrTasks+nbrMachines*2]++["\n"]++[show(pred)];
 

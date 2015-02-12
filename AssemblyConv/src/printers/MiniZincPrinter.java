@@ -22,7 +22,7 @@ public class MiniZincPrinter {
 
 		sb.append("% -------------- Parameters --------------- %\n\n");
 		sb.append("prioritiseTaking = false;\n\n");
-		sb.append("domainFilter = true;\n\n");
+		sb.append("tempFilter = true;\n\n");
 		sb.append("predFilter = true;\n\n");
 		sb.append("% ------------- Assembly data ------------- %\n\n");
 
