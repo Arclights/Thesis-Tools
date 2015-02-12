@@ -64,7 +64,6 @@ array[1..nbrTasks+nbrMachines*2] of var 1..nbrTasks+nbrMachines*2:pred; % The pr
 int:timeMatrix3DDepth;
 array[1..nbrTasks+nbrMachines,tasks,1..timeMatrix3DDepth] of int: timeMatrix3D;
 
-%int: total = sum(i in tasks)(duration[i]);
 % Used since int includes negative integers as well
 int:maxE = (max(duration)+max([timeMatrix3D[i,j,k]|i in tasks, j in tasks, k in 1..timeMatrix3DDepth]))*nbrTasks;
 array [1..nbrTasks+nbrMachines*2] of var 0..maxE: start;
@@ -89,9 +88,7 @@ array[components] of set of int:subComponents; % Only the components one subasse
 
 
 
-% set of int:hold;
 array[machines] of set of int: tasksOutOfRange;
-bool: prioritiseTaking;
 
 
 %-----------------------------------------------------------------------------------%
@@ -654,16 +651,11 @@ constraint
 
 solve :: seq_search([
                       int_search(usingMachine, first_fail, indomain_max, complete),
-if prioritiseTaking then
-                      int_search([pred[task]|task in taking where out_put[task] = 0], first_fail, indomain_max, complete)
-else
-                      int_search([pred[task]|task in taking where out_put[task] = 0], first_fail, indomain_median, complete)
-endif
-      ,int_search([pred[task]|task in putting where out_put[task] = 0], first_fail, indomain_median, complete),
+                      int_search([pred[task]|task in taking where out_put[task] = 0], first_fail, indomain_median, complete),
+                      int_search([pred[task]|task in putting where out_put[task] = 0], first_fail, indomain_median, complete),
                       int_search([pred[task]|task in mounting where out_put[task] = 0], first_fail, indomain_median, complete),
                       int_search([pred[task]|task in tasks where out_put[task] != 0], first_fail, indomain_median, complete),
                       int_search(pred, first_fail, indomain_median, complete),
-%                       int_search(toolUsed, first_fail, indomain_random, complete),
                       int_search(start, largest, indomain_min, complete)
 % Warmup for CPX
 %                       int_search(usingMachine, first_fail, indomain_max, cpx_warm_start(60000, complete)),
@@ -676,12 +668,10 @@ endif
 %                       int_search([pred[task]|task in mounting where out_put[task] = 0], first_fail, indomain_median, cpx_warm_start(60000, complete)),
 %                       int_search([pred[task]|task in tasks where out_put[task] != 0], first_fail, indomain_median, cpx_warm_start(60000, complete)),
 %                       int_search(pred, first_fail, indomain_median, cpx_warm_start(60000, complete)),
-% %                       int_search(toolUsed, first_fail, indomain_random, complete),
 %                       int_search(start, largest, indomain_min, cpx_warm_start(60000, complete))
                      
 ])
         minimize makespan;
-%% solve minimize makespan;
 
 output ["Minimizing = " ++ show(makespan) ++ "\n"]++["End = " ++ show(max(end)) ++ "\n"] ++ 
 ["start duration i usingMachine pred name hasToolChangeBefore\n"] ++
