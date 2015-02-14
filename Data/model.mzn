@@ -94,7 +94,7 @@ array[machines] of set of int: tasksOutOfRange;
 %-----------------------------------------------------------------------------------%
 
 % -------------- Filtering -------------- %
-% -------------- Domain Filtering -------------- %
+% -------------- Temporal Filtering -------------- %
 array[tasks] of int: maxMoveDurs = [max([timeMatrix3D[task,j,k]|j in tasks, k in 1..timeMatrix3DDepth where task != j])|task in tasks];
 array[tasks] of int: minMoveDurs = [min([timeMatrix3D[task,j,k]|j in tasks, k in 1..timeMatrix3DDepth where task != j])|task in tasks];
 int: maxEnd = sum(duration)+sum(maxMoveDurs);
