@@ -77,13 +77,13 @@ xsi:schemaLocation="http://exjobb18.cs.lth.se http://exjobb18.cs.lth.se/xml_form
 		<Fixture id="Front fixture"/>
 		<Component id="Top-Button"/>
 		<ToolNeeded id="tool1"/>
-		<Action id="Moving"/>
+		<Action id="Taking"/>
 	</Task>
 	<Task id="Lift top-button, hold top-button" Duration="5">
 		<Fixture id="Front fixture"/>
 		<Component id="Top-Button"/>
 		<ToolNeeded id="tool1"/>
-		<Action id="Taking"/>
+		<Action id="Moving"/>
 	</Task>
 	<Task id="Lift top-button, support" Duration="5">
 		<Component id="Top-Button"/>
