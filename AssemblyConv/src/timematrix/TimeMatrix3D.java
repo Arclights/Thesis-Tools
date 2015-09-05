@@ -18,7 +18,8 @@ public class TimeMatrix3D {
 
 	/**
 	 * Generates the matrix using the 2D time matrix and the Assembly object
-	 * @param assembly The Assembly object
+	 *
+	 * @param assembly   The Assembly object
 	 * @param timeMatrix The 2D time matrix
 	 */
 	private void createMatrix(Assembly assembly, TimeMatrix timeMatrix) {
@@ -35,12 +36,13 @@ public class TimeMatrix3D {
 	/**
 	 * Generates all the values to put in the matrix based on the id of hte task to move from (row in the matrix).
 	 * Essentially it creates a 2D matrix based on the row.
-	 * @param fromId The id of the task to generate from
-	 * @param assembly The Assembly object
+	 *
+	 * @param fromId     The id of the task to generate from
+	 * @param assembly   The Assembly object
 	 * @param timeMatrix The 2D time matrix
 	 */
 	private void addToMatrix(String fromId, Assembly assembly,
-			TimeMatrix timeMatrix) {
+							 TimeMatrix timeMatrix) {
 		for (int column = 1; column <= assembly.nbrTasks(); column++) {
 			String toId = assembly.iToTask(column).id;
 			for (int fromTool = 1; fromTool <= assembly.nbrTools(); fromTool++) {
@@ -73,8 +75,9 @@ public class TimeMatrix3D {
 
 	/**
 	 * Returns the duration for moving from task with id fromId to task with id toId and change tools inbetween.
-	 * @param fromId The id of the task to move from
-	 * @param toId The id of the task to move to
+	 *
+	 * @param fromId   The id of the task to move from
+	 * @param toId     The id of the task to move to
 	 * @param toolDiff The difference in tools used by the two tasks
 	 * @return The duration of the move
 	 * @throws IllegalAccessError
@@ -103,10 +106,11 @@ public class TimeMatrix3D {
 	/**
 	 * Adds the duration of the move between task with id fromId to task with id toId when the tool difference of the
 	 * two tasks is toolDiff
-	 * @param fromId The id of the task moving from
-	 * @param toId The id of the task moving to
+	 *
+	 * @param fromId   The id of the task moving from
+	 * @param toId     The id of the task moving to
 	 * @param toolDiff The difference in tools used by task fromId and task toId
-	 * @param time The duration of the move
+	 * @param time     The duration of the move
 	 */
 	public void addTime(String fromId, String toId, int toolDiff, int time) {
 		HashMap<String, HashMap<Integer, Integer>> row;
@@ -129,11 +133,12 @@ public class TimeMatrix3D {
 
 	/**
 	 * Returns the k-value of the matrix, that is the depth of the matrix
+	 *
 	 * @return The k-value
 	 */
 	@SuppressWarnings("unchecked")
 	public int nbrK() {
-		HashMap<String, HashMap<Integer, Integer>> section =(HashMap<String, HashMap<Integer, Integer>>) matrix
+		HashMap<String, HashMap<Integer, Integer>> section = (HashMap<String, HashMap<Integer, Integer>>) matrix
 				.values().toArray()[0]; /* Esentially a 2D slice of the matrix based on the row */
 		HashMap<Integer, Integer> slice = (HashMap<Integer, Integer>) section.values().toArray()[0];/* A cutout of the matrix being 1xk in size going along the 3D dimension */
 		return slice.size();

@@ -15,8 +15,9 @@ public class TimeMatrix {
 
 	/**
 	 * Returns the duration of moving from task fromTaskId to toTaskId
+	 *
 	 * @param fromTaskId The id of the task moving from
-	 * @param toTaskId The id of the task moving to
+	 * @param toTaskId   The id of the task moving to
 	 * @return The duration of the move
 	 */
 	public Integer getTime(String fromTaskId, String toTaskId) {
@@ -35,9 +36,10 @@ public class TimeMatrix {
 
 	/**
 	 * Adds the duration for moving from task fromTaskId to toTaskId to the matrix
+	 *
 	 * @param fromTaskId The id of the task moving from
-	 * @param toTaskId The id of the task moving to
-	 * @param time The duration of the move
+	 * @param toTaskId   The id of the task moving to
+	 * @param time       The duration of the move
 	 */
 	public void addTime(String fromTaskId, String toTaskId, int time) {
 		HashMap<String, Integer> tmp;

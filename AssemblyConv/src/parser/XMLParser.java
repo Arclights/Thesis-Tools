@@ -31,7 +31,8 @@ public class XMLParser {
 
 	/**
 	 * Parses the XML file and returns an Assembly object
-	 * @param xml The XML file
+	 *
+	 * @param xml        The XML file
 	 * @param timeMatrix The associated time matrix file
 	 * @return The Assembly object
 	 * @throws SAXException
@@ -51,51 +52,51 @@ public class XMLParser {
 			int event = reader.next();
 
 			switch (event) {
-			case XMLStreamConstants.START_ELEMENT:
-				switch (reader.getLocalName()) {
-				case "Tray":
-					Tray t = new Tray(parseId(reader));
-					assembly.addTray(t);
-					break;
-				case "Output":
-					Output o = new Output(parseId(reader));
-					assembly.addOutput(o);
-					break;
-				case "Fixture":
-					Fixture f = new Fixture(parseId(reader));
-					assembly.addFixture(f);
-					break;
-				case "Component":
-					Component c = new Component(parseId(reader));
-					assembly.addComponent(c);
-					break;
-				case "Subcomponents":
-					parseSubcomponents(reader, assembly);
-					break;
-				case "Tool":
-					Tool tool = new Tool(parseId(reader));
-					assembly.addTool(tool);
-					break;
-				case "Machine":
-					Machine m = new Machine(parseId(reader));
-					assembly.addMachine(m);
-					break;
-				case "Task":
-					parseTask(reader, assembly);
-					break;
-				case "OrderedGroup":
-					parseOrderedGroup(reader, assembly);
-					break;
-				case "ConcurrentGroup":
-					parseConcurentGroup(reader, assembly);
-					break;
-				case "TasksOutOfRange":
-					parseTasksOutOfRange(reader, assembly);
-					break;
-				case "ToolChangeDurations":
-					parseToolChangeDurations(reader, assembly);
-					break;
-				}
+				case XMLStreamConstants.START_ELEMENT:
+					switch (reader.getLocalName()) {
+						case "Tray":
+							Tray t = new Tray(parseId(reader));
+							assembly.addTray(t);
+							break;
+						case "Output":
+							Output o = new Output(parseId(reader));
+							assembly.addOutput(o);
+							break;
+						case "Fixture":
+							Fixture f = new Fixture(parseId(reader));
+							assembly.addFixture(f);
+							break;
+						case "Component":
+							Component c = new Component(parseId(reader));
+							assembly.addComponent(c);
+							break;
+						case "Subcomponents":
+							parseSubcomponents(reader, assembly);
+							break;
+						case "Tool":
+							Tool tool = new Tool(parseId(reader));
+							assembly.addTool(tool);
+							break;
+						case "Machine":
+							Machine m = new Machine(parseId(reader));
+							assembly.addMachine(m);
+							break;
+						case "Task":
+							parseTask(reader, assembly);
+							break;
+						case "OrderedGroup":
+							parseOrderedGroup(reader, assembly);
+							break;
+						case "ConcurrentGroup":
+							parseConcurentGroup(reader, assembly);
+							break;
+						case "TasksOutOfRange":
+							parseTasksOutOfRange(reader, assembly);
+							break;
+						case "ToolChangeDurations":
+							parseToolChangeDurations(reader, assembly);
+							break;
+					}
 
 			}
 		}
@@ -105,6 +106,7 @@ public class XMLParser {
 
 	/**
 	 * Parses the id attribute of a tag
+	 *
 	 * @param reader The XML reader
 	 * @return The id
 	 * @throws XMLStreamException
@@ -116,40 +118,42 @@ public class XMLParser {
 
 	/**
 	 * Parses the Subcomponents tag and puts it in the Assembly object
-	 * @param reader The XML reader
+	 *
+	 * @param reader   The XML reader
 	 * @param assembly The Assembly object
 	 * @throws XMLStreamException
 	 */
 	private static void parseSubcomponents(XMLStreamReader reader,
-			Assembly assembly) throws XMLStreamException {
+										   Assembly assembly) throws XMLStreamException {
 		Component comp = assembly.getComponent(parseId(reader));
 		while (reader.hasNext()) {
 			switch (reader.next()) {
-			case XMLStreamConstants.START_ELEMENT:
-				switch (reader.getLocalName()) {
-				case "Component":
-					String subcompId = parseId(reader);
-					if (!assembly.componentExists(subcompId)) {
-						throw new IllegalArgumentException("Component "
-								+ subcompId + " used without being declared");
+				case XMLStreamConstants.START_ELEMENT:
+					switch (reader.getLocalName()) {
+						case "Component":
+							String subcompId = parseId(reader);
+							if (!assembly.componentExists(subcompId)) {
+								throw new IllegalArgumentException("Component "
+										+ subcompId + " used without being declared");
+							}
+							comp.addSubcomponent(assembly.getComponent(subcompId));
+							break;
 					}
-					comp.addSubcomponent(assembly.getComponent(subcompId));
-					break;
-				}
-			case XMLStreamConstants.END_ELEMENT:
-				switch (reader.getLocalName()) {
-				case "Subcomponents":
-					return;
-				default:
-					break;
-				}
+				case XMLStreamConstants.END_ELEMENT:
+					switch (reader.getLocalName()) {
+						case "Subcomponents":
+							return;
+						default:
+							break;
+					}
 			}
 		}
 	}
 
 	/**
 	 * Parses the task tag and puts it in the Assembly object
-	 * @param reader The XML reader
+	 *
+	 * @param reader   The XML reader
 	 * @param assembly The Assembly object
 	 * @throws XMLStreamException
 	 */
@@ -161,93 +165,94 @@ public class XMLParser {
 		String action = null;
 		while (reader.hasNext()) {
 			switch (reader.next()) {
-			case XMLStreamConstants.START_ELEMENT:
-				switch (reader.getLocalName()) {
-				case "Tray":
-					id = parseId(reader);
-					if (assembly.trayExists(id)) {
-						task.tray = assembly.getTray(id);
-					} else {
-						throw new IllegalArgumentException("Tray " + id
-								+ " used without being declared");
-					}
-					break;
-				case "Fixture":
-					id = parseId(reader);
-					if (assembly.fixtureExists(id)) {
-						task.fixture = assembly.getFixture(id);
-					} else {
-						throw new IllegalArgumentException("Fixture " + id
-								+ " used without being declared");
-					}
-					break;
-				case "Output":
-					id = parseId(reader);
-					if (assembly.outputExists(id)) {
-						task.output = assembly.getOutput(id);
-					} else {
-						throw new IllegalArgumentException("Output " + id
-								+ " used without being declared");
-					}
-					break;
-				case "Component":
-					id = parseId(reader);
-					if (assembly.componentExists(id)) {
-						task.componentsUsed.add(assembly.getComponent(id));
-					} else {
-						throw new IllegalArgumentException("Component " + id
-								+ " used without being declared");
-					}
-					break;
-				case "ComponentCreated":
-					id = parseId(reader);
-					if (assembly.componentExists(id)) {
-						task.componentCreated = assembly.getComponent(id);
-					} else {
-						throw new IllegalArgumentException("Component " + id
-								+ " used without being declared");
-					}
-					break;
-				case "ToolNeeded":
-					id = parseId(reader);
-					if (assembly.toolExists(id)) {
-						task.toolNeeded = assembly.getTool(id);
-					} else {
-						throw new IllegalArgumentException("Tool " + id
-								+ " used without being declared");
-					}
-					break;
-				case "Action":
-					action = parseId(reader).toLowerCase();
-					if (Task.allowedActions.contains(action)) {
-						task.action = action;
-					} else {
-						throw new IllegalArgumentException("Action \"" + action
-								+ "\" is not valid");
-					}
-					break;
+				case XMLStreamConstants.START_ELEMENT:
+					switch (reader.getLocalName()) {
+						case "Tray":
+							id = parseId(reader);
+							if (assembly.trayExists(id)) {
+								task.tray = assembly.getTray(id);
+							} else {
+								throw new IllegalArgumentException("Tray " + id
+										+ " used without being declared");
+							}
+							break;
+						case "Fixture":
+							id = parseId(reader);
+							if (assembly.fixtureExists(id)) {
+								task.fixture = assembly.getFixture(id);
+							} else {
+								throw new IllegalArgumentException("Fixture " + id
+										+ " used without being declared");
+							}
+							break;
+						case "Output":
+							id = parseId(reader);
+							if (assembly.outputExists(id)) {
+								task.output = assembly.getOutput(id);
+							} else {
+								throw new IllegalArgumentException("Output " + id
+										+ " used without being declared");
+							}
+							break;
+						case "Component":
+							id = parseId(reader);
+							if (assembly.componentExists(id)) {
+								task.componentsUsed.add(assembly.getComponent(id));
+							} else {
+								throw new IllegalArgumentException("Component " + id
+										+ " used without being declared");
+							}
+							break;
+						case "ComponentCreated":
+							id = parseId(reader);
+							if (assembly.componentExists(id)) {
+								task.componentCreated = assembly.getComponent(id);
+							} else {
+								throw new IllegalArgumentException("Component " + id
+										+ " used without being declared");
+							}
+							break;
+						case "ToolNeeded":
+							id = parseId(reader);
+							if (assembly.toolExists(id)) {
+								task.toolNeeded = assembly.getTool(id);
+							} else {
+								throw new IllegalArgumentException("Tool " + id
+										+ " used without being declared");
+							}
+							break;
+						case "Action":
+							action = parseId(reader).toLowerCase();
+							if (Task.allowedActions.contains(action)) {
+								task.action = action;
+							} else {
+								throw new IllegalArgumentException("Action \"" + action
+										+ "\" is not valid");
+							}
+							break;
 
-				default:
-					break;
-				}
-			case XMLStreamConstants.END_ELEMENT:
-				switch (reader.getLocalName()) {
-				case "Task":
-					assembly.addTask(task);
-					return;
-				}
+						default:
+							break;
+					}
+				case XMLStreamConstants.END_ELEMENT:
+					switch (reader.getLocalName()) {
+						case "Task":
+							assembly.addTask(task);
+							return;
+					}
 			}
 		}
 	}
 
 	/**
 	 * Parses the TasksOutOfRange tag and puts it in the Assembly object
-	 * @param reader The XML reader
+	 *
+	 * @param reader   The XML reader
 	 * @param assembly The Assembly object
 	 * @throws XMLStreamException
 	 */
 	private static void parseTasksOutOfRange(XMLStreamReader reader,
-			Assembly assembly) throws XMLStreamException {
+											 Assembly assembly) throws XMLStreamException {
 		Machine m;
 		String id = parseId(reader);
 		if (assembly.machineExists(id)) {
@@ -258,128 +263,131 @@ public class XMLParser {
 		}
 		while (reader.hasNext()) {
 			switch (reader.next()) {
-			case XMLStreamConstants.START_ELEMENT:
-				switch (reader.getLocalName()) {
-				case "Task":
-					m.addOutOfRangeTask(assembly.getTask(parseId(reader)));
-					break;
-				}
-			case XMLStreamConstants.END_ELEMENT:
-				switch (reader.getLocalName()) {
-				case "TasksOutOfRange":
-					return;
-				}
+				case XMLStreamConstants.START_ELEMENT:
+					switch (reader.getLocalName()) {
+						case "Task":
+							m.addOutOfRangeTask(assembly.getTask(parseId(reader)));
+							break;
+					}
+				case XMLStreamConstants.END_ELEMENT:
+					switch (reader.getLocalName()) {
+						case "TasksOutOfRange":
+							return;
+					}
 			}
 		}
 	}
 
 	/**
 	 * Parses the OrderedGroup tag and puts it in the Assembly object
-	 * @param reader The XML reader
+	 *
+	 * @param reader   The XML reader
 	 * @param assembly The Assembly object
 	 * @throws XMLStreamException
 	 */
 	private static void parseOrderedGroup(XMLStreamReader reader,
-			Assembly assembly) throws XMLStreamException {
+										  Assembly assembly) throws XMLStreamException {
 		String id = null;
 		ArrayList<Task> group = new ArrayList<>();
 		while (reader.hasNext()) {
 			switch (reader.next()) {
-			case XMLStreamConstants.START_ELEMENT:
-				switch (reader.getLocalName()) {
-				case "Task":
-					id = parseId(reader);
-					if (assembly.taskExists(id)) {
-						group.add(assembly.getTask(id));
-					} else {
-						throw new IllegalArgumentException("Task " + id
-								+ " used without being declared");
+				case XMLStreamConstants.START_ELEMENT:
+					switch (reader.getLocalName()) {
+						case "Task":
+							id = parseId(reader);
+							if (assembly.taskExists(id)) {
+								group.add(assembly.getTask(id));
+							} else {
+								throw new IllegalArgumentException("Task " + id
+										+ " used without being declared");
+							}
 					}
-				}
-			case XMLStreamConstants.END_ELEMENT:
-				switch (reader.getLocalName()) {
-				case "OrderedGroup":
-					assembly.addOrderedGroup(group);
-					return;
-				}
+				case XMLStreamConstants.END_ELEMENT:
+					switch (reader.getLocalName()) {
+						case "OrderedGroup":
+							assembly.addOrderedGroup(group);
+							return;
+					}
 			}
 		}
 	}
 
 	/**
 	 * Parses the ConcurrentGroup tag and puts it in the Assembly object
-	 * @param reader The XML reader
+	 *
+	 * @param reader   The XML reader
 	 * @param assembly The Assembly object
 	 * @throws XMLStreamException
 	 */
 	private static void parseConcurentGroup(XMLStreamReader reader,
-			Assembly assembly) throws XMLStreamException {
+											Assembly assembly) throws XMLStreamException {
 		String id = null;
 		ArrayList<Task> group = new ArrayList<>();
 		while (reader.hasNext()) {
 			switch (reader.next()) {
-			case XMLStreamConstants.START_ELEMENT:
-				switch (reader.getLocalName()) {
-				case "Task":
-					id = parseId(reader);
-					if (assembly.taskExists(id)) {
-						group.add(assembly.getTask(id));
-					} else {
-						throw new IllegalArgumentException("Task " + id
-								+ " used without being declared");
+				case XMLStreamConstants.START_ELEMENT:
+					switch (reader.getLocalName()) {
+						case "Task":
+							id = parseId(reader);
+							if (assembly.taskExists(id)) {
+								group.add(assembly.getTask(id));
+							} else {
+								throw new IllegalArgumentException("Task " + id
+										+ " used without being declared");
+							}
 					}
-				}
-			case XMLStreamConstants.END_ELEMENT:
-				switch (reader.getLocalName()) {
-				case "ConcurrentGroup":
-					assembly.addConcurrentGroup(group);
-					return;
-				}
+				case XMLStreamConstants.END_ELEMENT:
+					switch (reader.getLocalName()) {
+						case "ConcurrentGroup":
+							assembly.addConcurrentGroup(group);
+							return;
+					}
 			}
 		}
 	}
 
 	/**
 	 * Parses the Change tag and puts it in the Assembly object
-	 * @param reader The XML reader
+	 *
+	 * @param reader   The XML reader
 	 * @param assembly The Assembly object
 	 * @throws NumberFormatException
 	 * @throws XMLStreamException
 	 */
 	private static void parseToolChangeDurations(XMLStreamReader reader,
-			Assembly assembly) throws NumberFormatException, XMLStreamException {
+												 Assembly assembly) throws NumberFormatException, XMLStreamException {
 		while (reader.hasNext()) {
 			switch (reader.next()) {
-			case XMLStreamConstants.START_ELEMENT:
-				switch (reader.getLocalName()) {
-				case "Change":
-					String fromToolId = reader.getAttributeValue(null,
-							"FromToolId");
-					String toToolId = reader
-							.getAttributeValue(null, "ToToolId");
-					if (!assembly.toolExists(fromToolId)) {
-						throw new IllegalArgumentException("Tool " + fromToolId
-								+ " used without being declared");
+				case XMLStreamConstants.START_ELEMENT:
+					switch (reader.getLocalName()) {
+						case "Change":
+							String fromToolId = reader.getAttributeValue(null,
+									"FromToolId");
+							String toToolId = reader
+									.getAttributeValue(null, "ToToolId");
+							if (!assembly.toolExists(fromToolId)) {
+								throw new IllegalArgumentException("Tool " + fromToolId
+										+ " used without being declared");
+							}
+							if (!assembly.toolExists(toToolId)) {
+								throw new IllegalArgumentException("Tool " + toToolId
+										+ " used without being declared");
+							}
+							int duration = Integer.parseInt(reader.getAttributeValue(
+									null, "Duration"));
+							assembly.addToolChangeDuration(
+									assembly.getTool(fromToolId),
+									assembly.getTool(toToolId), duration);
+							break;
 					}
-					if (!assembly.toolExists(toToolId)) {
-						throw new IllegalArgumentException("Tool " + toToolId
-								+ " used without being declared");
+				case XMLStreamConstants.END_ELEMENT:
+					switch (reader.getLocalName()) {
+						case "Change":
+							assembly.addConcurrentGroup(group);
+							return;
 					}
-					int duration = Integer.parseInt(reader.getAttributeValue(
-							null, "Duration"));
-					assembly.addToolChangeDuration(
-							assembly.getTool(fromToolId),
-							assembly.getTool(toToolId), duration);
-					break;
-				}
-			case XMLStreamConstants.END_ELEMENT:
-				switch (reader.getLocalName()) {
-					case "Change":
-						assembly.addConcurrentGroup(group);
-						return;
-				}
 			}
 		}
-		}
 	}
+}
 }

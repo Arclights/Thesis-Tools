@@ -27,6 +27,7 @@ public class TimeMatrixParser {
 
 	/**
 	 * Parses the time matrix file and returns a TimeMatrix object
+	 *
 	 * @param m The time matrix file
 	 * @return The TimeMatrix object
 	 * @throws IOException

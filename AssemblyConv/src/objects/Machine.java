@@ -17,6 +17,7 @@ public class Machine extends AssemblyObject {
 
 	/**
 	 * Adds a task that is out of range for this machine
+	 *
 	 * @param t Task out of range
 	 */
 	public void addOutOfRangeTask(Task t) {

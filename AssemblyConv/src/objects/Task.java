@@ -28,6 +28,7 @@ public class Task extends AssemblyObject {
 	public static final String ALLOWED_ACTION_PEELING = "peeling";
 
 	public static HashSet<String> allowedActions;
+
 	static {
 		allowedActions = new HashSet<>();
 		allowedActions.add(ALLOWED_ACTION_PUTTING);
@@ -49,6 +50,7 @@ public class Task extends AssemblyObject {
 	/**
 	 * Returns the string representation of all the subcomponents that is involved in this task,
 	 * except the components that are just consisting of one primitive component
+	 *
 	 * @return A set of sub components
 	 */
 	public Set<String> getSubComponents() {
@@ -56,7 +58,7 @@ public class Task extends AssemblyObject {
 		for (Component c : componentsUsed) {
 			ArrayList<String> subComps = c.getSubComponents();
 			if (subComps.size() > 1) { // So we don't get the ones that are
-										// single components
+				// single components
 				out.addAll(c.getSubComponents());
 			}
 		}
