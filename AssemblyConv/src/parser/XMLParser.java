@@ -24,8 +24,21 @@ import org.xml.sax.SAXException;
 
 import timematrix.TimeMatrix;
 
+/**
+ * This class takes care of the parsing of the XML file
+ */
 public class XMLParser {
 
+	/**
+	 * Parses the XML file and returns an Assembly object
+	 * @param xml The XML file
+	 * @param timeMatrix The associated time matrix file
+	 * @return The Assembly object
+	 * @throws SAXException
+	 * @throws IOException
+	 * @throws ParserConfigurationException
+	 * @throws XMLStreamException
+	 */
 	public static Assembly parse(File xml, TimeMatrix timeMatrix)
 			throws SAXException, IOException, ParserConfigurationException,
 			XMLStreamException {
@@ -90,11 +103,23 @@ public class XMLParser {
 		return assembly;
 	}
 
+	/**
+	 * Parses the id attribute of a tag
+	 * @param reader The XML reader
+	 * @return The id
+	 * @throws XMLStreamException
+	 */
 	private static String parseId(XMLStreamReader reader)
 			throws XMLStreamException {
 		return reader.getAttributeValue(null, "id");
 	}
 
+	/**
+	 * Parses the Subcomponents tag and puts it in the Assembly object
+	 * @param reader The XML reader
+	 * @param assembly The Assembly object
+	 * @throws XMLStreamException
+	 */
 	private static void parseSubcomponents(XMLStreamReader reader,
 			Assembly assembly) throws XMLStreamException {
 		Component comp = assembly.getComponent(parseId(reader));
@@ -122,6 +147,12 @@ public class XMLParser {
 		}
 	}
 
+	/**
+	 * Parses the task tag and puts it in the Assembly object
+	 * @param reader The XML reader
+	 * @param assembly The Assembly object
+	 * @throws XMLStreamException
+	 */
 	private static void parseTask(XMLStreamReader reader, Assembly assembly)
 			throws XMLStreamException {
 		Task task = new Task(parseId(reader), Integer.parseInt(reader
@@ -209,6 +240,12 @@ public class XMLParser {
 		}
 	}
 
+	/**
+	 * Parses the TasksOutOfRange tag and puts it in the Assembly object
+	 * @param reader The XML reader
+	 * @param assembly The Assembly object
+	 * @throws XMLStreamException
+	 */
 	private static void parseTasksOutOfRange(XMLStreamReader reader,
 			Assembly assembly) throws XMLStreamException {
 		Machine m;
@@ -236,6 +273,12 @@ public class XMLParser {
 		}
 	}
 
+	/**
+	 * Parses the OrderedGroup tag and puts it in the Assembly object
+	 * @param reader The XML reader
+	 * @param assembly The Assembly object
+	 * @throws XMLStreamException
+	 */
 	private static void parseOrderedGroup(XMLStreamReader reader,
 			Assembly assembly) throws XMLStreamException {
 		String id = null;
@@ -263,6 +306,12 @@ public class XMLParser {
 		}
 	}
 
+	/**
+	 * Parses the ConcurrentGroup tag and puts it in the Assembly object
+	 * @param reader The XML reader
+	 * @param assembly The Assembly object
+	 * @throws XMLStreamException
+	 */
 	private static void parseConcurentGroup(XMLStreamReader reader,
 			Assembly assembly) throws XMLStreamException {
 		String id = null;
@@ -290,6 +339,13 @@ public class XMLParser {
 		}
 	}
 
+	/**
+	 * Parses the Change tag and puts it in the Assembly object
+	 * @param reader The XML reader
+	 * @param assembly The Assembly object
+	 * @throws NumberFormatException
+	 * @throws XMLStreamException
+	 */
 	private static void parseToolChangeDurations(XMLStreamReader reader,
 			Assembly assembly) throws NumberFormatException, XMLStreamException {
 		while (reader.hasNext()) {
@@ -316,7 +372,14 @@ public class XMLParser {
 							assembly.getTool(toToolId), duration);
 					break;
 				}
+			case XMLStreamConstants.END_ELEMENT:
+				switch (reader.getLocalName()) {
+					case "Change":
+						assembly.addConcurrentGroup(group);
+						return;
+				}
 			}
+		}
 		}
 	}
 }

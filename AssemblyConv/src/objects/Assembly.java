@@ -9,7 +9,14 @@ import timematrix.TimeMatrix;
 import timematrix.TimeMatrix3D;
 import containers.ToolChangeDurations;
 
+/**
+ * This class represents the whole assembly and contains all its objects
+ *
+ * @author Tommy Kvant
+ */
 public class Assembly {
+
+	/* All the assembly parts mapped to its name */
 	private HashMap<String, Tray> trays;
 	private HashMap<String, Output> outputs;
 	private HashMap<String, Fixture> fixtures;
@@ -18,13 +25,19 @@ public class Assembly {
 	private HashMap<String, Machine> machines;
 	private HashMap<String, Task> tasks;
 
+	/* The groupings of tasks that needs to come in a certain order */
 	private ArrayList<ArrayList<Task>> ordered;
+	/* The groupings of tasks that needs to be executed at the same time */
 	private ArrayList<ArrayList<Task>> concurrent;
 
+	/* The durations for changing between tools */
 	private ToolChangeDurations toolChangeDurations;
 
+	/* A flag that indicates that we are done parsing the XML file */
 	private boolean doneParsing = false;
 
+	/* Index mappings */
+	/* All the assembly parts mapped to the indices they will have in the output file */
 	private HashMap<Integer, Task> iToTask;
 	private HashMap<Integer, Output> iToOutput;
 	private HashMap<Integer, Tray> iToTray;
@@ -33,13 +46,12 @@ public class Assembly {
 	private HashMap<Integer, Component> iToComponent;
 	private HashMap<Integer, Tool> iToTool;
 
+	/* The string that represents the start */
 	public String StartPos;
 
-	public int cycles;
-
-	public Task dummyTask;
-
+	/* The matrix of time for moving between tasks */
 	public TimeMatrix timeMatrix;
+	/* The matrix of time for moving between tasks included possible tool changes */
 	public TimeMatrix3D timeMatrix3D;
 
 	public Assembly(TimeMatrix timeMatrix) {
@@ -55,8 +67,6 @@ public class Assembly {
 		concurrent = new ArrayList<>();
 
 		toolChangeDurations = new ToolChangeDurations();
-
-		dummyTask = new Task("dummy", 0);
 
 		this.timeMatrix = timeMatrix;
 
@@ -189,7 +199,7 @@ public class Assembly {
 		}
 	}
 
-	/* Checking */
+	/* Checking if already added to assembly */
 	public boolean trayExists(String id) {
 		return trays.containsKey(id);
 	}
@@ -259,20 +269,12 @@ public class Assembly {
 		return toolChangeDurations.getDuration(fromTool, toTool);
 	}
 
+	/**
+	 * Method to be called when the parsing of the XML file is done
+	 * It mainly populates the index mapping variables and the 3D time matrix
+	 */
 	public void doneParsing() {
 		doneParsing = true;
-
-		/* Create cycles */
-
-		HashMap<String, Component> tmpComponents = new HashMap<>();
-		HashMap<String, Task> tmpTasks = new HashMap<>();
-		ArrayList<ArrayList<Task>> tmpOrdered = new ArrayList<>();
-		ArrayList<ArrayList<Task>> tmpConcurrent = new ArrayList<>();
-
-		components.putAll(tmpComponents);
-		tasks.putAll(tmpTasks);
-		ordered.addAll(tmpOrdered);
-		concurrent.addAll(tmpConcurrent);
 
 		iToTask = new HashMap<>();
 		int i = 1;

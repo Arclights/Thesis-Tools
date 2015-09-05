@@ -10,8 +10,27 @@ import java.util.regex.Pattern;
 
 import timematrix.TimeMatrix;
 
+/**
+ * This class is a parser for the time matrix file of the time for moving from one task to another.
+ * The time matrix file is a CSV file separated with semicolons.
+ * Each line starts with the name/id of the task it's moving from, except the first row.
+ * The first line contains the name/id of the task it's moving to
+ * For example:
+ * ;Take top;Put top in fixture;Take button;...
+ * Start;3;7.0710678119;7.2801098893;...
+ * Take top;0;8.0622577483;7.0710678119;...
+ * .
+ * .
+ * .
+ */
 public class TimeMatrixParser {
 
+	/**
+	 * Parses the time matrix file and returns a TimeMatrix object
+	 * @param m The time matrix file
+	 * @return The TimeMatrix object
+	 * @throws IOException
+	 */
 	public static TimeMatrix parse(File m) throws IOException {
 		TimeMatrix matrix = new TimeMatrix();
 
@@ -28,7 +47,7 @@ public class TimeMatrixParser {
 					"The first cell needs to be empty");
 		}
 
-		Matcher matcher = Pattern.compile(";(?:([\\w \\-,]+))").matcher(line);
+		Matcher matcher = Pattern.compile(";(?:([\\w \\-,]+))").matcher(line); /* Matching the first line */
 		while (matcher.find()) {
 			if (matcher.group(1) == null) {
 				columns.add(matcher.group(2));
@@ -38,7 +57,7 @@ public class TimeMatrixParser {
 		}
 
 		while ((line = reader.readLine()) != null) {
-			matcher = Pattern.compile("(?:([\\d.]+|[\\w \\-,]+))")
+			matcher = Pattern.compile("(?:([\\d.]+|[\\w \\-,]+))") /* Matching lines that are not the first */
 					.matcher(line);
 			String fromId = null;
 			int toI = 0;
@@ -48,7 +67,7 @@ public class TimeMatrixParser {
 							.group()));
 					matrix.addTime(fromId, columns.get(toI), time);
 					toI++;
-				} catch (Exception e) {
+				} catch (Exception e) { /* If we cannot cast the matched string to a double it must be the id string */
 					fromId = matcher.group();
 				}
 			}

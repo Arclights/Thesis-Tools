@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * This class represents a task that can be performed by a machine on a component using an action
+ */
 public class Task extends AssemblyObject {
 	public int duration;
 	public Tray tray;
@@ -14,9 +17,7 @@ public class Task extends AssemblyObject {
 	public Tool toolNeeded;
 	public String action;
 
-	public int cycle;
-	public Task identicalTask;
-
+	/* The allowed actions */
 	public static final String ALLOWED_ACTION_PUTTING = "putting";
 	public static final String ALLOWED_ACTION_MOUNTING = "mounting";
 	public static final String ALLOWED_ACTION_TAKING = "taking";
@@ -43,11 +44,13 @@ public class Task extends AssemblyObject {
 		super(id);
 		this.duration = duration;
 		componentsUsed = new ArrayList<>();
-
-		cycle = 0;
-		identicalTask = this;
 	}
 
+	/**
+	 * Returns the string representation of all the subcomponents that is involved in this task,
+	 * except the components that are just consisting of one primitive component
+	 * @return A set of sub components
+	 */
 	public Set<String> getSubComponents() {
 		Set<String> out = new HashSet<>();
 		for (Component c : componentsUsed) {

@@ -18,6 +18,14 @@ import parser.XMLParser;
 import printers.MiniZincPrinter;
 import timematrix.TimeMatrix;
 
+/**
+ * This program is used to convert and XML file representing an assembly and the time matrix file into data for the
+ * solver.
+ * It takes the matrix file and the XML as arguments and produces a MiniZinc file.
+ * For a detailed description of the syntax run the program without parameters.
+ *
+ * @author Tommy Kvant
+ */
 public class Console {
 
 	private static String usage = "This program can be used to convert an XML assembly instructions file and a CSV time matrix file to a MiniZinc data file\n"

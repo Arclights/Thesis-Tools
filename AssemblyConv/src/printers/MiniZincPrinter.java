@@ -13,12 +13,18 @@ import objects.Tray;
 import timematrix.TimeMatrix;
 import timematrix.TimeMatrix3D;
 
+/**
+ * This class takes care of the printing of an Assembly object to a string that can be outputted to a MiniZinc file
+ */
 public class MiniZincPrinter {
 
-	public static String print(Assembly assembly, TimeMatrix matrix) {
+	/**
+	 * Prints the string representation of the Assembly object in MiniZinc format
+	 * @param assembly The Assembly object
+	 * @return A string in MiniZinc format
+	 */
+	public static String print(Assembly assembly) {
 		StringBuilder sb = new StringBuilder();
-
-		// TODO Refactor out everything dealing with cycles
 
 		sb.append("% -------------- Parameters --------------- %\n\n");
 		sb.append("tempFilter = true;\n\n");
@@ -63,7 +69,7 @@ public class MiniZincPrinter {
 		sb.append("\n");
 		appendOrderedGroups(sb, assembly);
 		sb.append("\n");
-		appendTimeMatrix(sb, assembly, matrix);
+		append3DTimeMatrix(sb, assembly);
 		sb.append("\n");
 		sb.append("% Tools").append("\n");
 		for (int i = 1; i <= assembly.nbrTools(); i++) {
@@ -75,13 +81,16 @@ public class MiniZincPrinter {
 		return sb.toString();
 	}
 
+	/**
+	 * Appends the names of the tasks to the string builder
+	 * @param sb The string builder
+	 * @param assembly The Assembly object
+	 */
 	private static void appendNames(StringBuilder sb, Assembly assembly) {
 		sb.append("name = [");
 		for (int i = 1; i <= assembly.nbrTasks(); i++) {
 			sb.append("\"").append(assembly.iToTask(i).id).append("\"");
-			// if (i < assembly.nbrTasks()) {
 			sb.append(",");
-			// }
 		}
 
 		// Start tasks
@@ -102,13 +111,16 @@ public class MiniZincPrinter {
 		sb.append("];\n");
 	}
 
+	/**
+	 * Appends the duration of the tasks to the string builder
+	 * @param sb The string builder
+	 * @param assembly The Assembly object
+	 */
 	private static void appendDurations(StringBuilder sb, Assembly assembly) {
 		sb.append("duration = [");
 		for (int i = 1; i <= assembly.nbrTasks(); i++) {
 			sb.append(assembly.iToTask(i).duration);
-			// if (i < assembly.nbrTasks()) {
 			sb.append(",");
-			// }
 		}
 
 		// Start task durations
@@ -127,6 +139,11 @@ public class MiniZincPrinter {
 		sb.append("];\n");
 	}
 
+	/**
+	 * Appends the indexes of the trays to the string builder
+	 * @param sb The string builder
+	 * @param assembly The Assembly object
+	 */
 	private static void appendTrays(StringBuilder sb, Assembly assembly) {
 		sb.append("% Trays").append("\n");
 		for (int i = 1; i <= assembly.nbrTrays(); i++) {
@@ -149,6 +166,11 @@ public class MiniZincPrinter {
 		sb.append("];\n");
 	}
 
+	/**
+	 * Appends the indexes of the outputs to the string builder
+	 * @param sb The string builder
+	 * @param assembly The Assembly object
+	 */
 	private static void appendOutputs(StringBuilder sb, Assembly assembly) {
 		sb.append("% Outputs").append("\n");
 		for (int i = 1; i <= assembly.nbrOutputs(); i++) {
@@ -171,6 +193,11 @@ public class MiniZincPrinter {
 		sb.append("];\n");
 	}
 
+	/**
+	 * Appends the indexes of the fixtures to the string builder
+	 * @param sb The string builder
+	 * @param assembly The Assembly object
+	 */
 	private static void appendFixtures(StringBuilder sb, Assembly assembly) {
 		sb.append("% Fixtures").append("\n");
 		for (int i = 1; i <= assembly.nbrFixtures(); i++) {
@@ -193,6 +220,11 @@ public class MiniZincPrinter {
 		sb.append("];\n");
 	}
 
+	/**
+	 * Appends the indexes of the components used for each task to the string builder grouped by task
+	 * @param sb The string builder
+	 * @param assembly The Assembly object
+	 */
 	private static void appendComponentsUsed(StringBuilder sb, Assembly assembly) {
 		sb.append("% Components").append("\n");
 		for (int i = 1; i <= assembly.nbrComponents(); i++) {
@@ -222,6 +254,14 @@ public class MiniZincPrinter {
 		sb.append("nbrComponents = ").append(nbrComponents).append(";\n");
 	}
 
+	/**
+	 * Appends the indexes of the sub components to the string builder in 3 ways:
+	 * By each task
+	 * By each component
+	 * By each task, including primitive components
+	 * @param sb The string builder
+	 * @param assembly The Assembly object
+	 */
 	private static void appendSubcomponents(StringBuilder sb, Assembly assembly) {
 		sb.append("taskSubComponents = [");
 		for (int i = 1; i <= assembly.nbrTasks(); i++) {
@@ -275,7 +315,8 @@ public class MiniZincPrinter {
 			ArrayList<String> subComps = new ArrayList<>(t.getSubComponents());
 			sb.append("{");
 			for (int j = 0; j < subComps.size(); j++) {
-				sb.append(assembly.getComponent(subComps.get(j)).i);
+				String subComp = subComps.get(j);
+				sb.append(assembly.getComponent(subComp).i);
 				if (j < subComps.size() - 1) {
 					sb.append(",");
 				}
@@ -288,6 +329,11 @@ public class MiniZincPrinter {
 		sb.append("];\n");
 	}
 
+	/**
+	 * Appends the indexes of the trays to the string builder
+	 * @param sb The string builder
+	 * @param assembly The Assembly object
+	 */
 	private static void appendComponentsCreated(StringBuilder sb,
 			Assembly assembly) {
 		sb.append("componentCreated = [");
@@ -305,6 +351,11 @@ public class MiniZincPrinter {
 		sb.append("];\n");
 	}
 
+	/**
+	 * Appends the indexes of the actions to the string builder
+	 * @param sb The string builder
+	 * @param assembly The Assembly object
+	 */
 	private static void appendAction(StringBuilder sb, Assembly assembly,
 			String action) {
 		sb.append("% ").append(action).append(" a component").append("\n");
@@ -325,6 +376,11 @@ public class MiniZincPrinter {
 		sb.append("};\n");
 	}
 
+	/**
+	 * Appends the indexes of the tasks that needs to be executed concurrently to the string builder
+	 * @param sb The string builder
+	 * @param assembly The Assembly object
+	 */
 	private static void appendConcurrentTasks(StringBuilder sb,
 			Assembly assembly) {
 		int nbrConcurrentGroups = assembly.nbrConcurrentGroups();
@@ -349,6 +405,11 @@ public class MiniZincPrinter {
 				.append(";\n");
 	}
 
+	/**
+	 * Appends the indexes of the tasks that are out of range for each machine to the string builder
+	 * @param sb The string builder
+	 * @param assembly The Assembly object
+	 */
 	private static void appendTasksOutOfRange(StringBuilder sb,
 			Assembly assembly) {
 		sb.append("tasksOutOfRange=[");
@@ -370,6 +431,11 @@ public class MiniZincPrinter {
 		sb.append("];\n");
 	}
 
+	/**
+	 * Appends the indexes of the tasks that needs to be executed in a specific order to the string builder
+	 * @param sb The string builder
+	 * @param assembly The Assembly object
+	 */
 	private static void appendOrderedGroups(StringBuilder sb, Assembly assembly) {
 		int orderedGroups = assembly.nbrOrderedGroups();
 		int maxOrderedLength = 0;
@@ -415,13 +481,11 @@ public class MiniZincPrinter {
 		sb.append("orderedGroups = ").append(orderedGroups).append(";\n");
 	}
 
-	private static void appendTimeMatrix(StringBuilder sb, Assembly assembly,
-			TimeMatrix matrix) {
-
-		append3DTimeMatrix(sb, assembly);
-
-	}
-
+	/**
+	 * Appends the 3D time matrix to the string builder
+	 * @param sb The string builder
+	 * @param assembly The Assembly object
+	 */
 	private static void append3DTimeMatrix(StringBuilder sb, Assembly assembly) {
 		int nbrI = assembly.nbrTasks();
 		int nbrJ = nbrI;
@@ -457,6 +521,11 @@ public class MiniZincPrinter {
 		sb.append("timeMatrix3DDepth = ").append(nbrK).append(";\n");
 	}
 
+	/**
+	 * Appends the indexes of the tools needed for each task to the string builder
+	 * @param sb The string builder
+	 * @param assembly The Assembly object
+	 */
 	private static void appendToolsNeeded(StringBuilder sb, Assembly assembly) {
 		sb.append("toolNeeded = [");
 		for (int i = 1; i <= assembly.nbrTasks(); i++) {
